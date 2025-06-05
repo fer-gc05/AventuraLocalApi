@@ -1,61 +1,194 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# AventuraLocal API
 
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+<a href="https://github.com/fer-gc05/AventuraLocalApi"><img src="https://img.shields.io/badge/GitHub-AventuraLocalApi-blue" alt="GitHub Repository"></a>
+<a href="https://laravel.com"><img src="https://img.shields.io/badge/Laravel-v12.x-red" alt="Laravel Version"></a>
 </p>
 
-## About Laravel
+<p align="center">
+<img src="https://img.shields.io/badge/PHP-8.2-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP 8.2">
+<img src="https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel">
+<img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL">
+<img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white" alt="Redis">
+<img src="https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=JSON%20web%20tokens&logoColor=white" alt="JWT">
+<img src="https://img.shields.io/badge/Scramble-000000?style=for-the-badge&logo=scramble&logoColor=white" alt="Scramble">
+</p>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Acerca de AventuraLocal API
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+AventuraLocal API es una plataforma backend desarrollada con Laravel que proporciona servicios para una aplicación de turismo y aventura local. La API permite gestionar destinos, eventos, rutas, reservas y una comunidad de usuarios interesados en el turismo local.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Características Principales
 
-## Learning Laravel
+- Gestión de Destinos Turísticos
+- Sistema de Eventos y Tours
+- Gestión de Rutas y Categorías
+- Sistema de Reservas
+- Comunidad de Usuarios
+- Sistema de Reseñas y Calificaciones
+- Gestión de Medios (imágenes y videos)
+- Sistema de Mensajería
+- Etiquetado de Contenido
+- Autenticación JWT
+- Documentación con Scramble
+- Sistema de Caché con Redis
+- Gestión de Permisos y Roles
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Requisitos del Sistema
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- PHP >= 8.2
+- Composer
+- MySQL >= 5.7
+- Redis >= 6.0
+- Node.js & NPM
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Instalación
 
-## Laravel Sponsors
+1. Clonar el repositorio:
+```bash
+git clone https://github.com/fer-gc05/AventuraLocalApi.git
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+2. Instalar dependencias de PHP:
+```bash
+composer install
+```
 
-### Premium Partners
+3. Instalar dependencias de Node.js:
+```bash
+npm install
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+4. Configurar el archivo .env:
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-## Contributing
+5. Configurar la base de datos en el archivo .env:
+```bash
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=aventura_local
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+6. Configurar JWT:
+```bash
+php artisan jwt:secret
+```
 
-## Code of Conduct
+7. Ejecutar las migraciones:
+```bash
+php artisan migrate
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+8. Iniciar el servidor:
+```bash
+php artisan serve
+```
 
-## Security Vulnerabilities
+## Estructura del Proyecto
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+El proyecto está organizado en los siguientes módulos principales:
 
-## License
+- **Models**: Contiene los modelos de datos (User, Destination, Event, Route, etc.)
+- **Controllers**: Lógica de negocio y manejo de peticiones
+- **Routes**: Definición de endpoints de la API
+- **Requests**: Definición de validación de entrada de datos
+- **Database**: Migraciones y seeders
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Caché
+
+El proyecto utiliza Redis como sistema de caché para mejorar el rendimiento. Las principales características incluyen:
+
+- Caché de consultas frecuentes
+- Caché de respuestas de API
+
+Para configurar Redis:
+
+1. Asegúrate de tener Redis instalado y ejecutándose
+2. Configura las variables de entorno en `.env`:
+```bash
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+```
+
+## Autenticación
+
+La API utiliza JWT (JSON Web Tokens) para la autenticación. Para acceder a los endpoints protegidos, necesitas:
+
+1. Registrarte: `POST /api/auth/register`
+2. Iniciar sesión: `POST /api/auth/login`
+3. Usar el token recibido en el header de las peticiones: `Authorization: Bearer {token}`
+
+## Documentación de la API
+
+La documentación de la API está generada usando [Scramble](https://scramble.dedoc.co/), una herramienta moderna para documentar APIs Laravel. Para acceder a la documentación:
+
+1. La documentación está disponible en: `/docs/api`
+
+## Endpoints Principales
+
+### Autenticación
+- `POST /api/auth/register` - Registro de usuarios
+- `POST /api/auth/login` - Inicio de sesión
+- `POST /api/auth/logout` - Cierre de sesión
+- `GET /api/auth/me` - Obtener información del usuario actual
+
+### Destinos
+- `GET /api/destinations` - Listar destinos
+- `GET /api/destinations/popular` - Destinos populares
+- `GET /api/destinations/{destination}` - Detalles de un destino
+- `POST /api/destinations` - Crear destino (requiere autenticación)
+- `PUT /api/destinations/{destination}` - Actualizar destino (requiere autenticación)
+- `DELETE /api/destinations/{destination}` - Eliminar destino (requiere autenticación)
+
+### Eventos
+- `GET /api/events` - Listar eventos
+- `GET /api/events/popular` - Eventos populares
+- `GET /api/events/upcoming` - Próximos eventos
+- `POST /api/events` - Crear evento (requiere autenticación)
+- `PUT /api/events/{event}` - Actualizar evento (requiere autenticación)
+- `DELETE /api/events/{event}` - Eliminar evento (requiere autenticación)
+
+### Rutas
+- `GET /api/routes` - Listar rutas
+- `GET /api/routes/popular` - Rutas populares
+- `POST /api/routes` - Crear ruta (requiere autenticación)
+- `PUT /api/routes/{route}` - Actualizar ruta (requiere autenticación)
+- `DELETE /api/routes/{route}` - Eliminar ruta (requiere autenticación)
+
+### Comunidades
+- `GET /api/communities` - Listar comunidades
+- `GET /api/communities/popular` - Comunidades populares
+- `POST /api/communities` - Crear comunidad (requiere autenticación)
+- `PUT /api/communities/{community}` - Actualizar comunidad (requiere autenticación)
+- `DELETE /api/communities/{community}` - Eliminar comunidad (requiere autenticación)
+
+### Usuarios
+- `GET /api/users` - Listar usuarios (requiere autenticación)
+- `GET /api/users/{user}` - Ver perfil de usuario
+- `PUT /api/users/{user}` - Actualizar perfil (requiere autenticación)
+- `DELETE /api/users/{user}` - Eliminar usuario (requiere autenticación)
+
+### Reseñas
+- `GET /api/reviews` - Listar reseñas
+- `POST /api/reviews` - Crear reseña (requiere autenticación)
+- `PUT /api/reviews/{review}` - Actualizar reseña (requiere autenticación)
+- `DELETE /api/reviews/{review}` - Eliminar reseña (requiere autenticación)
+
+### Reservas
+- `GET /api/reservations` - Listar reservas (requiere autenticación)
+- `POST /api/reservations` - Crear reserva (requiere autenticación)
+- `PUT /api/reservations/{reservation}` - Actualizar reserva (requiere autenticación)
+- `DELETE /api/reservations/{reservation}` - Eliminar reserva (requiere autenticación)
+
+## Contacto
+
+Fernando Gil - [@fer-gc05](https://github.com/fer-gc05)
+
+Link del Proyecto: [https://github.com/fer-gc05/AventuraLocalApi](https://github.com/fer-gc05/AventuraLocalApi)
