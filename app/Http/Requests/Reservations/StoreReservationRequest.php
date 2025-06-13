@@ -9,8 +9,8 @@ class StoreReservationRequest extends BaseRequest
     public function rules(): array
     {
         return [
-            'tour_id' => 'required|exists:tours,id',
-            'destination_id' => 'required|exists:destinations,id',
+            'tour_id' => 'nullable|exists:tours,id',
+            'destination_id' => 'nullable|exists:destinations,id',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
             'participants' => 'required|integer|min:1',

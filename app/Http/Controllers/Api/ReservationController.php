@@ -81,8 +81,8 @@ class ReservationController extends Controller
             $reservation = DB::transaction(function () use ($validated) {
                 return Reservation::create([
                     'user_id' => Auth::id(),
-                    'tour_id' => $validated['tour_id'],
-                    'destination_id' => $validated['destination_id'],
+                    'tour_id' => $validated['tour_id'] ?? null,
+                    'destination_id' => $validated['destination_id'] ?? null,
                     'start_date' => $validated['start_date'],
                     'end_date' => $validated['end_date'],
                     'participants' => $validated['participants'],
