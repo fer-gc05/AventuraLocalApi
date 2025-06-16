@@ -137,6 +137,7 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/recommendations', [CommunityController::class, 'getCommunityRecommendations']);
         Route::post('/{id}/restore', [CommunityController::class, 'restore']);
         Route::post('/{community}/join', [CommunityController::class, 'join']);
+        Route::post('/{community}/leave', [CommunityController::class, 'leave']);
         Route::get('/{community}/events', [CommunityController::class, 'getCommunityEvents']);
         Route::get('/{community}/routes', [CommunityController::class, 'getCommunityRoutes']);
         Route::put('/{community}', [CommunityController::class, 'update']);

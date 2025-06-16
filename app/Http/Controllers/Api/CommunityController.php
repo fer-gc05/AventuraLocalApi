@@ -366,6 +366,54 @@ class CommunityController extends Controller
     }
 
     /**
+     * Leave a community
+     * 
+     * This method is used to leave a community
+     * 
+     * @param \App\Models\Community $community
+     */
+    public function leave(Community $community)
+    {
+        DB::beginTransaction();
+        try {
+            $user = auth()->user();
+
+            // Verificar si el usuario es el administrador de la comunidad
+            if ($community->user_id === $user->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'El administrador no puede abandonar la comunidad',
+                ], 403);
+            }
+
+            // Eliminar la relación del usuario con la comunidad
+            $community->users()->detach($user->id);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Left community successfully',
+                'data' => [
+                    'community_id' => $community->id
+                ]
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Community not found',
+            ], 404);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error leaving community',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
      * Get popular communities
      * 
      * This method is used to get popular communities
@@ -428,22 +476,21 @@ class CommunityController extends Controller
                 ->paginate(10);
 
             if ($events->isEmpty()) {
-
                 return response()->json([
                     'success' => false,
-                    'message' => 'No community events found',
+                    'message' => 'No se encontraron eventos en esta comunidad',
                 ], 404);
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Community events retrieved successfully',
+                'message' => 'Eventos de la comunidad obtenidos exitosamente',
                 'data' => $events
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error retrieving community events',
+                'message' => 'Error al obtener los eventos de la comunidad',
                 'error' => $e->getMessage()
             ], 500);
         }
