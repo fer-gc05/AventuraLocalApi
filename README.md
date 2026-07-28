@@ -29,11 +29,11 @@ AventuraLocal API es una plataforma backend desarrollada con Laravel que proporc
 - Gestión de destinos turísticos, rutas, eventos y comunidades
 - Gestión de medios (imágenes y videos)
 - Sistema de mensajería
-- Etiquetado de contenido
 - Autenticación JWT
 - Documentación con Scramble
-- Sistema de caché con Redis
 - Gestión de permisos y roles (`admin`, `guide`, `traveler`)
+- **Arquitectura Repository Pattern** con contratos e implementaciones
+- Comando `make:repository` para generar repositorios automáticamente
 
 ## Requisitos del Sistema
 
@@ -105,30 +105,53 @@ El backend está orientado a un marketplace de guías turísticos independientes
 
 ## Estructura del Proyecto
 
-El proyecto está organizado en los siguientes módulos principales:
+```
+app/
+├── Models/                          # Modelos Eloquent (solo estructura de datos)
+├── Repositories/
+│   ├── Contracts/                   # Interfaces de repositorios
+│   │   ├── BaseRepository.php
+│   │   └── UserRepositoryInterface.php
+│   └── Implementations/             # Clases concretas
+│       ├── BaseRepositoryImplement.php
+│       └── UserRepositoryImplement.php
+├── Services/                        # Lógica de negocio
+├── Http/
+│   ├── Controllers/Api/
+│   └── Requests/
+├── Providers/
+└── Console/Commands/
+    └── MakeRepositoryCommand.php    # Comando para generar repositorios
+```
 
-- **Models**: Contiene los modelos de datos (User, GuideProfile, Tour, TourSchedule, Reservation, Review, etc.)
-- **Controllers**: Lógica de negocio y manejo de peticiones
-- **Routes**: Definición de endpoints de la API
-- **Requests**: Definición de validación de entrada de datos
-- **Database**: Migraciones, factories y seeders
+## Arquitectura
+
+El proyecto sigue el patrón **Repository + Service Layer**, con tres capas bien definidas:
+
+| Capa | Responsabilidad | Ubicación |
+|---|---|---|
+| **Models** | Estructura de datos, casts y relaciones entre tablas | `app/Models/` |
+| **Repositories** | Acceso a datos, consultas y persistencia (CRUD) | `app/Repositories/` |
+| **Services** | Lógica de negocio, reglas y orquestación | `app/Services/` |
+
+Cada repositorio se compone de una **interfaz** (contrato en `Contracts/`) y una **implementación concreta** (clase en `Implementations/`). Todas las implementaciones heredan de `BaseRepositoryImplement`, que provee el CRUD base, y se inyectan vía _dependency injection_ usando los contratos como tipo.
+
+### Generar un repositorio nuevo
+
+```bash
+php artisan make:repository              # menú interactivo para seleccionar modelo
+php artisan make:repository TourSchedule  # genera contrato + implementación para TourSchedule
+```
+
+Esto crea automáticamente dos archivos:
+- `app/Repositories/Contracts/TourScheduleRepositoryInterface.php`
+- `app/Repositories/Implementations/TourScheduleRepositoryImplement.php`
+
+Solo falta agregar los métodos específicos de consulta y registrar el binding en `AppServiceProvider`.
 
 ## Caché
 
-El proyecto utiliza Redis como sistema de caché para mejorar el rendimiento. Las principales características incluyen:
-
-- Caché de consultas frecuentes
-- Caché de respuestas de API
-
-Para configurar Redis:
-
-1. Asegúrate de tener Redis instalado y ejecutándose
-2. Configura las variables de entorno en `.env`:
-```bash
-REDIS_HOST=127.0.0.1
-REDIS_PASSWORD=null
-REDIS_PORT=6379
-```
+El proyecto soporta Redis como driver de caché para mejorar el rendimiento en producción. En desarrollo local se puede usar `file` cambiando `CACHE_DRIVER` en el `.env`.
 
 ## Autenticación
 
