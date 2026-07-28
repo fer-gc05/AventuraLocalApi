@@ -2,24 +2,25 @@
 
 namespace App\Repositories\Implementations;
 
+use App\Repositories\Contracts\BaseRepository;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
-abstract class BaseRepositoryImplement
+abstract class BaseRepositoryImplement implements BaseRepository
 {
-    public function __construct(protected Model $model){}
+    public function __construct(protected Model $model) {}
 
     public function all(): Collection
     {
         return $this->model->all();
     }
 
-    public function find(int $id): ? Model
+    public function find(int $id): ?Model
     {
         return $this->model->find($id);
     }
 
-    public function findBy(string $field, mixed $value): ? Model
+    public function findBy(string $field, mixed $value): ?Model
     {
         return $this->model->where($field, $value)->first();
     }
@@ -38,5 +39,4 @@ abstract class BaseRepositoryImplement
     {
         return $model->delete();
     }
-
 }
