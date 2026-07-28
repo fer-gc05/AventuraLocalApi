@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -146,6 +147,11 @@ class User extends Authenticatable implements JWTSubject
     public function media(): MorphMany
     {
         return $this->morphMany(Media::class, 'model');
+    }
+
+    public function guideProfile(): HasOne
+    {
+        return $this->hasOne(GuideProfile::class);
     }
 
     public function attendedEvents(): BelongsToMany

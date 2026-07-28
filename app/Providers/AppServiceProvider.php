@@ -2,12 +2,17 @@
 
 namespace App\Providers;
 
+use App\Models\Destination;
+use App\Models\Event;
+use App\Models\Route;
+use App\Models\Tour;
+use App\Models\User;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
-use Illuminate\Support\ServiceProvider;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Gate;
-use App\Models\User;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,6 +29,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Relation::morphMap([
+            'tour' => Tour::class,
+            'destination' => Destination::class,
+            'route' => Route::class,
+            'event' => Event::class,
+        ]);
+
         Scramble::configure()
         ->withDocumentTransformers(function(OpenApi $openApi){
             $openApi->secure(

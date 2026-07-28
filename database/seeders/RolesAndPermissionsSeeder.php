@@ -18,101 +18,69 @@ class RolesAndPermissionsSeeder extends Seeder
         $roles = [
             'Administrator',
             'Traveler',
-            'Entrepreneur',
-            'Event Organizer',
-            'Event Participant',
+            'Guide'
         ];
 
         foreach ($roles as $role) {
-            Role::create(['name' => $role]);
+            Role::firstOrCreate(['name' => $role]);
         }
 
         $permissions = [
+            //General Admin permissions
             'manage-users',
-            'manage-tags',
+            'manage-guides',
+            'manage-tours',
             'manage-categories',
             'manage-destinations',
-            'view-events',
-            'create-events',
-            'edit-events',
-            'delete-events',
-            'manage-reservations',
             'manage-reviews',
-            'view-routes',
-            'create-routes',
-            'edit-routes',
-            'delete-routes',
+            'manage-reservations',
+            'manage-payouts',
+            'view-dashboard',
+
+            //Traveler permissions
             'view-tours',
-            'create-tours',
-            'edit-tours',
-            'delete-tours',
-            'manage-media',
-            'manage-communities',
-            'manage-messages',
+            'create-reservations',
+            'view-own-reservations',
+            'cancel-own-reservations',
+            'create-reviews',
+            'manage-own-media',
+
+            //Guide permissions
+            'view-own-dashboard',
+            'manage-own-tours',
+            'manage-own-schedules',
+            'view-own-reservations',
+            'manage-own-reviews',
+            'manage-own-payouts',
+            'manage-own-media'
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission]);
         }
 
         $adminRole = Role::where('name', 'Administrator')->first();
         $adminRole->givePermissionTo(Permission::all());
 
-
         $travelerRole = Role::where('name', 'Traveler')->first();
-        $travelerRole->givePermissionTo([
-            'view-events',         // Puede ver eventos
-            'view-tours',         // Puede ver tours
-            'view-routes',        // Puede ver rutas
-            'manage-reservations', // Puede hacer reservas
-            'manage-reviews',     // Puede escribir reseñas
-            'manage-communities', // Puede participar en comunidades
-            'manage-messages',    // Puede enviar/recibir mensajes
-            'manage-media',       // Puede subir su foto de perfil
-        ]);
+        $travelerRole->givePermissionTo(
+            'view-tours',
+            'create-reservations',
+            'view-own-reservations',
+            'cancel-own-reservations',
+            'create-reviews',
+            'manage-own-media'
+        );
 
-        $entrepreneurRole = Role::where('name', 'Entrepreneur')->first();
-        $entrepreneurRole->givePermissionTo([
-            'manage-destinations', // Puede crear/editar destinos
-            'manage-categories',  // Puede gestionar categorías
-            'manage-tags',        // Puede gestionar etiquetas
-            'view-events',        // Puede ver eventos
-            'create-events',      // Puede crear eventos
-            'edit-events',        // Puede editar eventos
-            'delete-events',      // Puede eliminar eventos
-            'view-tours',         // Puede ver tours
-            'create-tours',       // Puede crear tours
-            'edit-tours',         // Puede editar tours
-            'delete-tours',       // Puede eliminar tours
-            'view-routes',        // Puede ver rutas
-            'create-routes',      // Puede crear rutas
-            'edit-routes',        // Puede editar rutas
-            'delete-routes',      // Puede eliminar rutas
-            'manage-reservations', // Puede gestionar reservas
-            'manage-reviews',     // Puede gestionar reseñas
-            'manage-communities', // Puede crear/gestionar comunidades
-            'manage-messages',    // Puede enviar/recibir mensajes
-            'manage-media',       // Puede subir fotos (e.g., para destinos o tours)
-        ]);
-
-
-        $eventOrganizerRole = Role::where('name', 'Event Organizer')->first();
-        $eventOrganizerRole->givePermissionTo([
-            'view-events',        // Puede ver eventos
-            'create-events',      // Puede crear eventos
-            'edit-events',        // Puede editar eventos
-            'delete-events',      // Puede eliminar eventos
-            'manage-reservations', // Puede gestionar reservas de eventos
-            'manage-reviews',     // Puede gestionar reseñas de eventos
-            'manage-media',       // Puede subir fotos para eventos
-        ]);
-
-
-        $eventParticipantRole = Role::where('name', 'Event Participant')->first();
-        $eventParticipantRole->givePermissionTo([
-            'view-events',        // Puede ver eventos
-            'manage-reservations', // Puede reservar eventos
-            'manage-reviews',     // Puede reseñar eventos
-        ]);
+        $guideRole = Role::where('name', 'Guide')->first();
+        $guideRole->givePermissionTo(
+            'view-own-dashboard',
+            'manage-own-tours',
+            'manage-own-schedules',
+            'view-own-reservations',
+            'manage-own-reviews',
+            'manage-own-payouts',
+            'manage-own-media'
+        );
     }
 }

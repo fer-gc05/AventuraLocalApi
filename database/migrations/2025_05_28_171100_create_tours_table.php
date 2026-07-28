@@ -12,20 +12,34 @@ return new class extends Migration {
     {
         Schema::create('tours', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('title');
             $table->string('slug')->unique();
-            $table->text('description')->nullable();
-            $table->decimal('price', 10, 2);
-            $table->string('currency')->default('USD');
-            $table->integer('duration_days')->unsigned();
-            $table->integer('max_participants')->unsigned()->nullable();
-            $table->date('start_date');
-            $table->date('end_date');
-            $table->foreignId('route_id')->constrained()->onDelete('cascade');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->text('short_description')->nullable();
+            $table->longText('description')->nullable();
+            $table->foreignId('guide_id')->constrained('guide_profiles')->onDelete('cascade');
+            $table->foreignId('category_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('destination_id')->nullable()->constrained()->onDelete('set null');
+            $table->string('meeting_point')->nullable();
+            $table->decimal('meeting_latitude', 10, 8)->nullable();
+            $table->decimal('meeting_longitude', 11, 8)->nullable();
+            $table->decimal('price_per_person', 10, 2);
+            $table->string('currency')->default('COP');
+            $table->unsignedInteger('duration_minutes')->nullable();
+            $table->unsignedInteger('max_participants');
+            $table->unsignedInteger('min_participants')->default(1);
+            $table->json('languages')->nullable();
+            $table->json('includes')->nullable();
+            $table->json('excludes')->nullable();
+            $table->json('what_to_bring')->nullable();
+            $table->enum('difficulty', ['easy', 'medium', 'hard'])->default('easy');
+            $table->enum('status', ['draft', 'published', 'paused', 'cancelled'])->default('draft');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index('status');
+            $table->index('is_active');
+            $table->index(['meeting_latitude', 'meeting_longitude']);
         });
     }
 

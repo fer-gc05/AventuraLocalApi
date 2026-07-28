@@ -2,49 +2,77 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Tour extends Model
-{   
-    use SoftDeletes;
+{
+    use HasFactory, SoftDeletes;
+
     protected $fillable = [
-        'name',
+        'title',
         'slug',
+        'short_description',
         'description',
-        'price',
+        'guide_id',
+        'category_id',
+        'destination_id',
+        'meeting_point',
+        'meeting_latitude',
+        'meeting_longitude',
+        'price_per_person',
         'currency',
-        'duration_days',
+        'duration_minutes',
         'max_participants',
-        'start_date',
-        'end_date',
-        'route_id',
-        'user_id',
+        'min_participants',
+        'languages',
+        'includes',
+        'excludes',
+        'what_to_bring',
+        'difficulty',
+        'status',
         'is_active',
     ];
 
     protected function casts(): array
     {
         return [
-            'price' => 'decimal:2',
-            'duration_days' => 'integer',
+            'meeting_latitude' => 'decimal:8',
+            'meeting_longitude' => 'decimal:8',
+            'price_per_person' => 'decimal:2',
+            'duration_minutes' => 'integer',
             'max_participants' => 'integer',
-            'start_date' => 'date',
-            'end_date' => 'date',
+            'min_participants' => 'integer',
+            'languages' => 'array',
+            'includes' => 'array',
+            'excludes' => 'array',
+            'what_to_bring' => 'array',
             'is_active' => 'boolean',
         ];
     }
 
-    public function user(): BelongsTo
+    public function guide(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(GuideProfile::class, 'guide_id');
     }
 
-    public function route(): BelongsTo
+    public function category(): BelongsTo
     {
-        return $this->belongsTo(Route::class);
+        return $this->belongsTo(Category::class);
+    }
+
+    public function destination(): BelongsTo
+    {
+        return $this->belongsTo(Destination::class);
+    }
+
+    public function schedules(): HasMany
+    {
+        return $this->hasMany(TourSchedule::class);
     }
 
     public function reservations(): HasMany
@@ -52,8 +80,13 @@ class Tour extends Model
         return $this->hasMany(Reservation::class);
     }
 
-    public function reviews(): HasMany
+    public function reviews(): MorphMany
     {
-        return $this->hasMany(Review::class);
+        return $this->morphMany(Review::class, 'reviewable');
+    }
+
+    public function media(): MorphMany
+    {
+        return $this->morphMany(Media::class, 'model');
     }
 }

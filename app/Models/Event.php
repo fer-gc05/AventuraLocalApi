@@ -79,26 +79,4 @@ class Event extends Model
     {
         return $this->belongsTo(Category::class);
     }
-
-    public function nearbyEvents(float $radius, ?string $searchTerm = null)
-    {
-        $earthRadius = 6371;
-
-        $query = Event::select('*')
-            ->selectRaw(
-                "( $earthRadius * acos( cos( radians(?) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( latitude ) ) ) ) AS distance",
-                [$this->latitude, $this->longitude, $this->latitude]
-            )
-            ->where('id', '!=', $this->id)
-            ->whereNotNull('latitude')
-            ->whereNotNull('longitude')
-            ->having('distance', '<=', $radius);
-
-        if ($searchTerm) {
-            $query->where('title', 'like', '%' . $searchTerm . '%');
-        }
-
-        return $query->orderBy('distance');
-    }
-
 }

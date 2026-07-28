@@ -41,4 +41,25 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+
+    public function admin(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            $user->assignRole('Administrator');
+        });
+    }
+
+    public function guide(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            $user->assignRole('Guide');
+        });
+    }
+
+    public function traveler(): static
+    {
+        return $this->afterCreating(function (User $user) {
+            $user->assignRole('Traveler');
+        });
+    }
 }

@@ -92,6 +92,11 @@ class Destination extends Model
         return $this->hasMany(Event::class);
     }
 
+    public function tours(): HasMany
+    {
+        return $this->hasMany(Tour::class);
+    }
+
     public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'destination_user')
@@ -102,19 +107,5 @@ class Destination extends Model
     public function reviews(): MorphMany
     {
         return $this->morphMany(Review::class, 'reviewable');
-    }
-
-    public function nearbyDestinations(float $radius)
-    {
-        $earthRadius = 6371; // Radius of Earth in kilometers
-    
-        return Destination::select('*')
-            ->selectRaw(
-                "( $earthRadius * acos( cos( radians(?) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( latitude ) ) ) ) AS distance",
-                [$this->latitude, $this->longitude, $this->latitude]
-            )
-            ->where('id', '!=', $this->id)
-            ->whereNotNull('latitude')
-            ->whereNotNull('longitude');
     }
 }

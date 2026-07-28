@@ -245,6 +245,7 @@ class ReviewController extends Controller
     protected function getReviewableClass(string $reviewableType): ?string
     {
         $map = [
+            'tour' => \App\Models\Tour::class,
             'event' => \App\Models\Event::class,
             'route' => \App\Models\Route::class,
             'destination' => \App\Models\Destination::class,
