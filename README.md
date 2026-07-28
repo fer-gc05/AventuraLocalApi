@@ -20,19 +20,20 @@ AventuraLocal API es una plataforma backend desarrollada con Laravel que proporc
 
 ## Características Principales
 
-- Gestión de Destinos Turísticos
-- Sistema de Eventos y Tours
-- Gestión de Rutas y Categorías
-- Sistema de Reservas
-- Comunidad de Usuarios
-- Sistema de Reseñas y Calificaciones
-- Gestión de Medios (imágenes y videos)
-- Sistema de Mensajería
-- Etiquetado de Contenido
+- Marketplace de tours guiados por locales independientes
+- Perfiles de guía con verificación, especialidades e idiomas
+- Gestión de tours con punto de encuentro, precio por persona, cupos e itinerario
+- Calendario de disponibilidad por tour (`TourSchedule`) con control de cupos
+- Sistema de reservas vinculado a un horario específico
+- Sistema de reseñas y calificaciones (polimórfico)
+- Gestión de destinos turísticos, rutas, eventos y comunidades
+- Gestión de medios (imágenes y videos)
+- Sistema de mensajería
+- Etiquetado de contenido
 - Autenticación JWT
 - Documentación con Scramble
-- Sistema de Caché con Redis
-- Gestión de Permisos y Roles
+- Sistema de caché con Redis
+- Gestión de permisos y roles (`admin`, `guide`, `traveler`)
 
 ## Requisitos del Sistema
 
@@ -90,15 +91,27 @@ php artisan migrate
 php artisan serve
 ```
 
+## Modelo de Dominio
+
+El backend está orientado a un marketplace de guías turísticos independientes:
+
+- **User**: Cuenta de usuario genérica. Puede tener rol `admin`, `guide` o `traveler`.
+- **GuideProfile**: Perfil profesional del guía, separado de la cuenta de usuario. Incluye biografía, idiomas, especialidades, estado de verificación y balances.
+- **Tour**: Experiencia turística creada por un guía. Contiene título, descripción, precio por persona, punto de encuentro geolocalizado, cupos mínimos/máximos, idiomas, qué incluye/no incluye, etc.
+- **TourSchedule**: Horario específico de un tour. Controla los cupos disponibles (`max_spots` / `booked_spots`).
+- **Reservation**: Reserva de un turista para un `TourSchedule` específico. Incluye referencia, QR, estado de pago y estado de la reserva.
+- **Review**: Reseña polimórfica que puede asociarse a tours, destinos, rutas o eventos.
+- **Destination / Route / Event / Community**: Entidades secundarias mantenidas para enriquecer el catálogo de experiencias.
+
 ## Estructura del Proyecto
 
 El proyecto está organizado en los siguientes módulos principales:
 
-- **Models**: Contiene los modelos de datos (User, Destination, Event, Route, etc.)
+- **Models**: Contiene los modelos de datos (User, GuideProfile, Tour, TourSchedule, Reservation, Review, etc.)
 - **Controllers**: Lógica de negocio y manejo de peticiones
 - **Routes**: Definición de endpoints de la API
 - **Requests**: Definición de validación de entrada de datos
-- **Database**: Migraciones y seeders
+- **Database**: Migraciones, factories y seeders
 
 ## Caché
 
