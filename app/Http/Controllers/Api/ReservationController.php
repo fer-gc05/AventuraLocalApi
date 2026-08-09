@@ -3,340 +3,118 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Reservations\StoreReservationRequest;
-use App\Http\Requests\Reservations\UpdateReservationRequest;
 use App\Models\Reservation;
+use App\Services\BookingService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ReservationController extends Controller
 {
-    /**
-     * Get all reservations
-     * 
-     * This method is used to get all reservations
-     * 
-     * @param \Illuminate\Http\Request $request
-     */
-    public function index(Request $request)
+    public function __construct(
+        private BookingService $bookingService,
+    ) {}
+
+    public function index(Request $request): JsonResponse
     {
-        try {
-            $cacheKey = 'reservations_' . (Auth::user()->hasRole('Administrator') ? 'all' : Auth::id());
-            $reservations = Cache::tags(['reservations'])->remember($cacheKey, now()->addMinutes(10), function () {
-                $query = Reservation::with([
-                    'user' => function ($query) {
-                        $query->select('id', 'name');
-                    },
-                    'tour' => function ($query) {
-                        $query->select('id', 'name');
-                    },
-                    'destination' => function ($query) {
-                        $query->select('id', 'name');
-                    }
-                ]);
+        $reservations = $this->bookingService->findByUser(auth()->id());
 
-                if (!Auth::user()->hasRole('Administrator')) {
-                    $query->where('user_id', Auth::id());
-                }
-
-                return $query->orderBy('created_at', 'desc')->paginate(10);
-            });
-
-            if ($reservations->isEmpty()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No reservations found',
-                ], 404);
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Reservations retrieved successfully',
-                'data' => $reservations
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error retrieving reservations',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Reservations retrieved successfully',
+            'data' => $reservations,
+        ]);
     }
 
-    /**
-     * Create a reservation
-     * 
-     * This method is used to create a reservation
-     * 
-     * @param \App\Http\Requests\Reservations\StoreReservationRequest $request
-     */
-    public function store(StoreReservationRequest $request)
+    public function store(Request $request): JsonResponse
     {
-        try {
-            $validated = $request->validated();
+        $validated = $request->validate([
+            'tour_schedule_id' => 'required|exists:tour_schedules,id',
+            'participants' => 'required|integer|min:1',
+            'special_requests' => 'nullable|string|max:1000',
+        ]);
 
-            $reservation = DB::transaction(function () use ($validated) {
-                return Reservation::create([
-                    'user_id' => Auth::id(),
-                    'tour_id' => $validated['tour_id'] ?? null,
-                    'destination_id' => $validated['destination_id'] ?? null,
-                    'start_date' => $validated['start_date'],
-                    'end_date' => $validated['end_date'],
-                    'participants' => $validated['participants'],
-                    'total_price' => $validated['total_price'],
-                    'currency' => $validated['currency'],
-                    'status' => 'pending',
-                    'special_requests' => $validated['special_requests'] ?? null,
-                ]);
-            });
+        $reservation = $this->bookingService->create($validated, auth()->id());
 
-            Cache::tags(['reservations'])->flush();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Reservation created successfully, pending confirmation',
-                'data' => $reservation->load([
-                    'user' => function ($query) {
-                        $query->select('id', 'name');
-                    },
-                    'tour' => function ($query) {
-                        $query->select('id', 'name');
-                    },
-                    'destination' => function ($query) {
-                        $query->select('id', 'name');
-                    }
-                ])
-            ], 201);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error creating reservation',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Reservation created successfully, pending confirmation',
+            'data' => $reservation,
+        ], 201);
     }
 
-    /**
-     * Get a reservation
-     * 
-     * This method is used to get a reservation
-     * 
-     * @param \App\Models\Reservation $reservation
-     */
-    public function show(Reservation $reservation)
+    public function show(Reservation $reservation): JsonResponse
     {
-        try {
+        $reservation = $this->bookingService->findById($reservation->id);
 
-            $reservation->load([
-                'user' => function ($query) {
-                    $query->select('id', 'name');
-                },
-                'tour' => function ($query) {
-                    $query->select('id', 'name');
-                },
-                'destination' => function ($query) {
-                    $query->select('id', 'name');
-                }
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Reservation retrieved successfully',
-                'data' => $reservation
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error retrieving reservation',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Reservation retrieved successfully',
+            'data' => $reservation,
+        ]);
     }
 
-    /**
-     * Update a reservation
-     * 
-     * This method is used to update a reservation
-     * 
-     * @param \App\Http\Requests\Reservations\UpdateReservationRequest $request
-     * @param \App\Models\Reservation $reservation
-     */
-    public function update(UpdateReservationRequest $request, Reservation $reservation)
+    public function cancel(Request $request, Reservation $reservation): JsonResponse
     {
-        try {
+        $reservation = $this->bookingService->cancel(
+            $reservation,
+            auth()->id(),
+            $request->input('cancellation_reason')
+        );
 
-            $validated = $request->validated();
-
-            $reservation = DB::transaction(function () use ($reservation, $validated) {
-                $reservation->update([
-                    'start_date' => $validated['start_date'] ?? $reservation->start_date,
-                    'end_date' => $validated['end_date'] ?? $reservation->end_date,
-                    'participants' => $validated['participants'] ?? $reservation->participants,
-                    'total_price' => $validated['total_price'] ?? $reservation->total_price,
-                    'currency' => $validated['currency'] ?? $reservation->currency,
-                    'status' => $validated['status'] ?? $reservation->status,
-                    'special_requests' => $validated['special_requests'] ?? $reservation->special_requests,
-                ]);
-                return $reservation;
-            });
-
-            Cache::tags(['reservations'])->flush();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Reservation updated successfully',
-                'data' => $reservation->load([
-                    'user' => function ($query) {
-                        $query->select('id', 'name');
-                    },
-                    'tour' => function ($query) {
-                        $query->select('id', 'name');
-                    },
-                    'destination' => function ($query) {
-                        $query->select('id', 'name');
-                    }
-                ])
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error updating reservation',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Reservation cancelled successfully',
+            'data' => $reservation,
+        ]);
     }
 
-    /**
-     * Delete a reservation
-     * 
-     * This method is used to delete a reservation
-     * 
-     * @param \App\Models\Reservation $reservation
-     */
-    public function destroy(Reservation $reservation)
+    public function confirm(Reservation $reservation): JsonResponse
     {
-        try {
+        $reservation = $this->bookingService->confirm($reservation);
 
-            DB::transaction(function () use ($reservation) {
-                $reservation->delete();
-            });
-
-            Cache::tags(['reservations'])->flush();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Reservation deleted successfully',
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error deleting reservation',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Reservation confirmed successfully',
+            'data' => $reservation,
+        ]);
     }
 
-    /**
-     * Get all trashed reservations
-     * 
-     * This method is used to get all trashed reservations
-     * 
-     * @param \Illuminate\Http\Request $request
-     */
-    public function trashed(Request $request)
+    public function destroy(Reservation $reservation): JsonResponse
     {
-        try {
+        $reservation->delete();
 
-            $cacheKey = 'trashed_reservations';
-            $reservations = Cache::tags(['reservations', 'trashed_reservations'])->remember($cacheKey, now()->addMinutes(10), function () {
-                return Reservation::onlyTrashed()->with([
-                    'user' => function ($query) {
-                        $query->select('id', 'name');
-                    },
-                    'tour' => function ($query) {
-                        $query->select('id', 'name');
-                    },
-                    'destination' => function ($query) {
-                        $query->select('id', 'name');
-                    }
-                ])
-                    ->orderBy('deleted_at', 'desc')
-                    ->paginate(10);
-            });
-
-            if ($reservations->isEmpty()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No deleted reservations found',
-                ], 404);
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Deleted reservations retrieved successfully',
-                'data' => $reservations
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error retrieving deleted reservations',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Reservation deleted successfully',
+        ]);
     }
 
-    /**
-     * Restore a reservation
-     * 
-     * This method is used to restore a reservation
-     * 
-     * @param int $id
-     */
-    public function restore($id)
+    public function trashed(): JsonResponse
     {
-        try {
+        $reservations = Reservation::onlyTrashed()
+            ->with(['user', 'tour', 'tourSchedule'])
+            ->orderBy('deleted_at', 'desc')
+            ->paginate(10);
 
+        return response()->json([
+            'success' => true,
+            'message' => 'Deleted reservations retrieved successfully',
+            'data' => $reservations,
+        ]);
+    }
 
-            $reservation = Reservation::onlyTrashed()->findOrFail($id);
+    public function restore($id): JsonResponse
+    {
+        $reservation = Reservation::onlyTrashed()->findOrFail($id);
+        $reservation->restore();
 
-            $reservation = DB::transaction(function () use ($reservation) {
-                $reservation->restore();
-                return $reservation;
-            });
+        $reservation->load(['user', 'tour', 'tourSchedule']);
 
-            Cache::tags(['reservations', 'trashed_reservations'])->flush();
-
-            $reservation->load([
-                'user' => function ($query) {
-                    $query->select('id', 'name');
-                },
-                'tour' => function ($query) {
-                    $query->select('id', 'name');
-                },
-                'destination' => function ($query) {
-                    $query->select('id', 'name');
-                }
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Reservation restored successfully',
-                'data' => $reservation
-            ]);
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Reservation not found or not deleted',
-            ], 404);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error restoring reservation',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Reservation restored successfully',
+            'data' => $reservation,
+        ]);
     }
 }

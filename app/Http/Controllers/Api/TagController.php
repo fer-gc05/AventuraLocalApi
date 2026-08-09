@@ -26,7 +26,7 @@ class TagController extends Controller
         try {
 
             $cacheKey = 'tags_' . md5(json_encode($request->all()));
-            $tags = Cache::tags(['tags'])->remember($cacheKey, now()->addMinutes(10), function () use ($request) {
+            $tags = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($request) {
                 $query = Tag::query();
 
                 if ($request->has('name')) {
@@ -84,13 +84,13 @@ class TagController extends Controller
 
             $tag = Tag::create($validated);
 
-            Cache::tags(['tags'])->flush();
+            Cache::flush();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Tag created successfully',
                 'data' => $tag
-            ]);
+            ], 201);
 
         } catch (\Exception $e) {
             return response()->json([
@@ -146,7 +146,7 @@ class TagController extends Controller
 
             $tag->update($validated);
 
-            Cache::tags(['tags'])->flush();
+            Cache::flush();
 
             return response()->json([
                 'success' => true,
@@ -175,7 +175,7 @@ class TagController extends Controller
         try {
             $tag->delete();
 
-            Cache::tags(['tags'])->flush();
+            Cache::flush();
 
             return response()->json([
                 'success' => true,
@@ -238,7 +238,7 @@ class TagController extends Controller
             $tag = Tag::withTrashed()->findOrFail($id);
             $tag->restore();
 
-            Cache::tags(['tags'])->flush();
+            Cache::flush();
 
             return response()->json([
                 'success' => true,

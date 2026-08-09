@@ -76,31 +76,13 @@ class CommunityController extends Controller
      */
     public function show(Community $community)
     {
-        try {
-            $community = $community->load(['user', 'category', 'users', 'media']);
+        $community->load(['user', 'category', 'users', 'media']);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Community fetched successfully',
-                'data' => $community,
-            ]);
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Community not found',
-            ], 404);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error fetching community',
-                'error' => $e->getMessage(),
-            ], 500);
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Community not found',
-            ], 404);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Community fetched successfully',
+            'data' => $community,
+        ]);
     }
 
     /**
@@ -141,13 +123,13 @@ class CommunityController extends Controller
             ]);
 
             DB::commit();
-            Cache::tags(['communities'])->flush();
+            Cache::flush();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Community created successfully',
                 'data' => $community->load(['user', 'category', 'users', 'media'])
-            ]);
+            ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -190,7 +172,7 @@ class CommunityController extends Controller
             }
 
             DB::commit();
-            Cache::tags(['communities'])->flush();
+            Cache::flush();
 
             return response()->json([
                 'success' => true,
@@ -226,7 +208,7 @@ class CommunityController extends Controller
             $community->delete();
 
             DB::commit();
-            Cache::tags(['communities'])->flush();
+            Cache::flush();
 
             return response()->json([
                 'success' => true,
@@ -262,7 +244,7 @@ class CommunityController extends Controller
             $community->restore();
 
             DB::commit();
-            Cache::tags(['communities'])->flush();
+            Cache::flush();
 
             return response()->json([
                 'success' => true,
@@ -427,7 +409,7 @@ class CommunityController extends Controller
             $limit = $request->query('limit', 10);
             $cacheKey = 'popular_communities_' . $limit;
 
-            $communities = Cache::tags(['communities'])->remember($cacheKey, now()->addHours(1), function () use ($limit) {
+            $communities = Cache::remember($cacheKey, now()->addHours(1), function () use ($limit) {
                 return Community::with(['category', 'media'])
                     ->withCount('users')
                     ->orderBy('users_count', 'desc')
@@ -554,7 +536,7 @@ class CommunityController extends Controller
             $user = auth()->user();
             $limit = $request->query('limit', 5);
 
-            $recommendations = Cache::tags(['communities'])->remember('community_recommendations_' . $user->id, now()->addHours(1), function () use ($user, $limit) {
+            $recommendations = Cache::remember('community_recommendations_' . $user->id, now()->addHours(1), function () use ($user, $limit) {
                 $userCategories = $user->communities()
                     ->with('category')
                     ->get()
