@@ -30,7 +30,7 @@ class UserController extends Controller
     {
         try {
             $cacheKey = 'users_' . md5(json_encode($request->all()));
-            $users = Cache::tags(['users'])->remember($cacheKey, now()->addMinutes(10), function () use ($request) {
+            $users = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($request) {
                 $filters = [
                     'name' => $request->query('name'),
                     'email' => $request->query('email'),
@@ -99,7 +99,7 @@ class UserController extends Controller
             $user->assignRole($request->role);
 
             DB::commit();
-            Cache::tags(['users'])->flush();
+            Cache::flush();
 
             return response()->json([
                 'success' => true,
@@ -127,7 +127,7 @@ class UserController extends Controller
     {
         try {
             $cacheKey = 'user_' . $user->id;
-            $cachedUser = Cache::tags(['users'])->remember($cacheKey, now()->addMinutes(10), function () use ($user) {
+            $cachedUser = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($user) {
                 return $user->load('media');
             });
 
@@ -165,8 +165,12 @@ class UserController extends Controller
         try {
             $user->update($request->validated());
 
+            if ($request->has('roles') && is_array($request->roles)) {
+                $user->syncRoles($request->roles);
+            }
+
             DB::commit();
-            Cache::tags(['users'])->flush();
+            Cache::flush();
 
             return response()->json([
                 'success' => true,
@@ -209,7 +213,7 @@ class UserController extends Controller
             $user->delete();
 
             DB::commit();
-            Cache::tags(['users'])->flush();
+            Cache::flush();
 
             return response()->json([
                 'success' => true,
@@ -245,7 +249,7 @@ class UserController extends Controller
             $user->restore();
 
             DB::commit();
-            Cache::tags(['users'])->flush();
+            Cache::flush();
 
             return response()->json([
                 'success' => true,
@@ -337,7 +341,7 @@ class UserController extends Controller
             );
 
             DB::commit();
-            Cache::tags(['users'])->flush();
+            Cache::flush();
 
             return response()->json([
                 'success' => true,
@@ -365,7 +369,7 @@ class UserController extends Controller
     {
         try {
             $cacheKey = 'user_destinations_' . $user->id;
-            $destinations = Cache::tags(['users'])->remember($cacheKey, now()->addMinutes(10), function () use ($user) {
+            $destinations = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($user) {
                 return $user->destinations()->with('media')->get();
             });
 

@@ -96,7 +96,7 @@ class AuthController extends Controller
                     'email' => $user->email,
                     'role' => $user->roles->pluck('name')->first(),
                 ],
-            ]);
+            ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -147,7 +147,7 @@ class AuthController extends Controller
     public function logout()
     {
         try {
-            JWTAuth::logout();
+            JWTAuth::invalidate(JWTAuth::getToken());
 
             return response()->json([
                 'success' => true,

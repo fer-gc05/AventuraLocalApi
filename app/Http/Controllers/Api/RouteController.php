@@ -25,8 +25,8 @@ class RouteController extends Controller
     {
         try {
             $cacheKey = 'routes_' . md5(json_encode($request->all()));
-            $routes = Cache::tags(['routes'])->remember($cacheKey, now()->addMinutes(10), function () use ($request) {
-                $query = Route::with(['user', 'destinations', 'tours', 'reviews']);
+            $routes = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($request) {
+                $query = Route::with(['user', 'destinations', 'reviews']);
 
                 if ($request->has('name')) {
                     $query->where('name', 'like', '%' . $request->name . '%');
@@ -80,20 +80,38 @@ class RouteController extends Controller
     public function store(StoreRouteRequest $request)
     {
         try {
-            $route = Route::create($request->all());
+            $data = $request->all();
+            $data['user_id'] = auth()->id();
+            $route = Route::create($data);
 
             if ($request->has('destinations')) {
-                $route->destinations()->sync($request->destinations);
+                $destinations = $request->destinations;
+                if (is_array($destinations)) {
+                    if (isset($destinations[0]) && is_array($destinations[0])) {
+                        $syncData = [];
+                        foreach ($destinations as $i => $dest) {
+                            $destId = $dest['destination_id'] ?? $dest['id'] ?? $dest;
+                            $syncData[$destId] = ['order' => $dest['order'] ?? ($i + 1)];
+                        }
+                        $route->destinations()->sync($syncData);
+                    } else {
+                        $syncData = [];
+                        foreach ($destinations as $i => $destId) {
+                            $syncData[$destId] = ['order' => $i + 1];
+                        }
+                        $route->destinations()->sync($syncData);
+                    }
+                }
             }
 
-            $route->load(['user', 'destinations', 'tours', 'reviews']);
-            Cache::tags(['routes'])->flush();
+            $route->load(['user', 'destinations', 'reviews']);
+            Cache::flush();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Route created successfully',
                 'data' => $route
-            ]);
+            ], 201);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -113,39 +131,13 @@ class RouteController extends Controller
      */
     public function show(Route $route)
     {
-        try {
-            $route = $route->load(['user', 'destinations', 'tours', 'reviews']);
+        $route->load(['user', 'destinations', 'reviews']);
 
-            if (!$route) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Route not found',
-                ], 404);
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Route retrieved successfully',
-                'data' => $route
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error retrieving route',
-                'error' => $e->getMessage(),
-            ], 500);
-        } catch (QueryException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error retrieving route',
-                'error' => $e->getMessage(),
-            ], 500);
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Route not found',
-            ], 404);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Route retrieved successfully',
+            'data' => $route,
+        ]);
     }
 
     /**
@@ -158,40 +150,35 @@ class RouteController extends Controller
      */
     public function update(UpdateRouteRequest $request, Route $route)
     {
-        try{
-            $route->update($request->all());
+        $route->update($request->all());
 
-            if($request->has('destinations')){
-                $route->destinations()->sync($request->destinations);
+        if ($request->has('destinations')) {
+            $destinations = $request->destinations;
+            if (is_array($destinations)) {
+                if (isset($destinations[0]) && is_array($destinations[0])) {
+                    $syncData = [];
+                    foreach ($destinations as $i => $dest) {
+                        $destId = $dest['destination_id'] ?? $dest['id'] ?? $dest;
+                        $syncData[$destId] = ['order' => $dest['order'] ?? ($i + 1)];
+                    }
+                    $route->destinations()->sync($syncData);
+                } else {
+                    $syncData = [];
+                    foreach ($destinations as $i => $destId) {
+                        $syncData[$destId] = ['order' => $i + 1];
+                    }
+                    $route->destinations()->sync($syncData);
+                }
             }
-
-            $route->load(['user', 'destinations', 'tours', 'reviews']);
-
-            Cache::tags(['routes'])->flush();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Route updated successfully',
-                'data' => $route
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error updating route',
-                'error' => $e->getMessage(),
-            ], 500);
-        } catch (QueryException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error updating route',
-                'error' => $e->getMessage(),
-            ], 500);
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Route not found',
-            ], 404);
         }
+
+        $route->load(['user', 'destinations', 'reviews']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Route updated successfully',
+            'data' => $route,
+        ]);
     }
 
     /**
@@ -203,33 +190,12 @@ class RouteController extends Controller
      */
     public function destroy(Route $route)
     {
-        try{
-            $route->delete();
+        $route->delete();
 
-            Cache::tags(['routes'])->flush();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Route deleted successfully',
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error deleting route',
-                'error' => $e->getMessage(),
-            ], 500);
-        } catch (QueryException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error deleting route',
-                'error' => $e->getMessage(),
-            ], 500);
-        } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Route not found',
-            ], 404);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Route deleted successfully',
+        ]);
     }
 
     /**
@@ -245,12 +211,12 @@ class RouteController extends Controller
             $route = Route::withTrashed()->findOrFail($id);
             $route->restore();
 
-            Cache::tags(['routes'])->flush();
+            Cache::flush();
 
             return response()->json([
                 'success' => true,
                 'message' => 'Route restored successfully',
-                'data' => $route->load(['user', 'destinations', 'tours', 'reviews'])
+                'data' => $route->load(['user', 'destinations', 'reviews'])
             ]);
         } catch (ModelNotFoundException $e) {
             return response()->json([
@@ -301,42 +267,24 @@ class RouteController extends Controller
      */
     public function getPopularRoutes(Request $request)
     {
-        try {
-            $limit = $request->query('limit', 10);
-            $cacheKey = 'popular_routes_' . $limit;
+        $limit = $request->query('limit', 10);
 
-            $routes = Cache::tags(['routes'])->remember($cacheKey, now()->addHours(1), function () use ($limit) {
-                return Route::with(['user', 'destinations'])
-                    ->withCount(['users as favorites_count' => function ($query) {
-                        $query->where('is_favorite', true);
-                    }])
-                    ->withCount(['users as completed_count' => function ($query) {
-                        $query->where('status', 'completed');
-                    }])
-                    ->orderByRaw('(favorites_count + completed_count) DESC')
-                    ->take($limit)
-                    ->get();
-            });
+        $routes = Route::with(['user', 'destinations'])
+            ->withCount(['users as favorites_count' => function ($query) {
+                $query->wherePivot('is_favorite', true);
+            }])
+            ->withCount(['users as completed_count' => function ($query) {
+                $query->wherePivot('status', 'completed');
+            }])
+            ->orderByRaw('(favorites_count + completed_count) DESC')
+            ->take($limit)
+            ->get();
 
-            if ($routes->isEmpty()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No popular routes found',
-                ], 404);
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Popular routes retrieved successfully',
-                'data' => $routes
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error retrieving popular routes',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Popular routes retrieved successfully',
+            'data' => $routes,
+        ]);
     }
 
     /**
@@ -419,31 +367,16 @@ class RouteController extends Controller
      */
     public function getRouteEvents(Route $route)
     {
-        try {
-            $events = $route->events()
-                ->with(['user', 'destination', 'media'])
-                ->where('start_date', '>', now())
-                ->paginate(10);
+        $events = $route->events()
+            ->with(['user', 'destination', 'media'])
+            ->where('start_datetime', '>', now())
+            ->paginate(10);
 
-            if ($events->isEmpty()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No events found',
-                ], 404);
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Route events retrieved successfully',
-                'data' => $events
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error retrieving route events',
-                'error' => $e->getMessage()
-            ], 500);
-        }
+        return response()->json([
+            'success' => true,
+            'message' => 'Route events retrieved successfully',
+            'data' => $events,
+        ]);
     }
 
     /**

@@ -34,15 +34,19 @@ class ReviewController extends Controller
                 }
             }
 
-            $cacheKey = 'user_reviews_' . Auth::id() . '_' . md5(json_encode($request->all()));
-            $reviews = Cache::tags(['reviews', 'user_reviews'])->remember($cacheKey, now()->addMinutes(10), function () use ($request) {
+            $userId = auth('api')->id();
+            $cacheKey = 'reviews_' . ($userId ?? 'public') . '_' . md5(json_encode($request->all()));
+            $reviews = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($request, $userId) {
                 $query = Review::with([
                     'user' => function ($query) {
                         $query->select('id', 'name');
                     },
                     'reviewable'
-                ])
-                    ->where('user_id', Auth::id());
+                ]);
+
+                if ($userId) {
+                    $query->where('user_id', $userId);
+                }
 
                 if ($request->has('reviewable_type')) {
                     $query->where('reviewable_type', $this->getReviewableClass($request->reviewable_type));
@@ -99,14 +103,14 @@ class ReviewController extends Controller
                 return Review::create([
                     'content' => $validated['content'],
                     'rating' => $validated['rating'],
-                    'user_id' => Auth::id(),
+                    'user_id' => auth('api')->id(),
                     'status' => 'pending',
                     'reviewable_type' => $this->getReviewableClass($validated['reviewable_type']),
                     'reviewable_id' => $validated['reviewable_id'],
                 ]);
             });
 
-            Cache::tags(['reviews'])->flush();
+            Cache::flush();
 
             return response()->json([
                 'success' => true,
@@ -185,7 +189,7 @@ class ReviewController extends Controller
                 return $review;
             });
 
-            Cache::tags(['reviews'])->flush();
+            Cache::flush();
 
             return response()->json([
                 'success' => true,
@@ -220,7 +224,7 @@ class ReviewController extends Controller
                 $review->delete();
             });
 
-            Cache::tags(['reviews'])->flush();
+            Cache::flush();
 
             return response()->json([
                 'success' => true,
@@ -266,7 +270,7 @@ class ReviewController extends Controller
         try {
             $review = Review::onlyTrashed()->findOrFail($id);
             $review->restore();
-            Cache::tags(['reviews'])->flush();
+            Cache::flush();
 
             return response()->json([
                 'success' => true,
