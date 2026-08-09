@@ -5,9 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Route extends Model   
 {
@@ -22,6 +22,15 @@ class Route extends Model
         'difficulty',
         'user_id',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function ($route) {
+            if (empty($route->slug)) {
+                $route->slug = Str::slug($route->name);
+            }
+        });
+    }
 
     protected function casts(): array
     {
@@ -44,11 +53,6 @@ class Route extends Model
             'route_id',
             'destination_id'
         );
-    }
-
-    public function tours(): HasMany
-    {
-        return $this->hasMany(Tour::class);
     }
 
     public function reviews(): MorphMany
@@ -84,6 +88,6 @@ class Route extends Model
             'route_user',
             'route_id',
             'user_id'
-        );
+        )->withPivot('is_favorite', 'status', 'completed_at');
     }
 }
