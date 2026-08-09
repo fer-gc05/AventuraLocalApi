@@ -12,7 +12,9 @@ class UpdateUserRequest extends BaseRequest
             'name' => 'nullable|string|max:255',
             'email' => 'nullable|email|unique:users,email',
             'password' => 'nullable|string|min:8',
-            'role' => 'nullable|string|exists:roles,name|in:Traveler,Entrepreneur,Event Organizer,Event Participant'
+            'role' => 'nullable|string|exists:roles,name',
+            'roles' => 'nullable|array',
+            'roles.*' => 'string|exists:roles,name',
         ];
     }
 }
