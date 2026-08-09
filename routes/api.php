@@ -4,11 +4,13 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CommunityController;
 use App\Http\Controllers\Api\DestinationController;
 use App\Http\Controllers\Api\EventController;
+use App\Http\Controllers\Api\GuideProfileController;
 use App\Http\Controllers\Api\ReservationController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\RouteController;
 use App\Http\Controllers\Api\TagController;
 use App\Http\Controllers\Api\TourController;
+use App\Http\Controllers\Api\TourScheduleController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Support\Facades\Route;
@@ -17,6 +19,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('destinations')->group(function () {
     Route::get('/popular', [DestinationController::class, 'getPopularDestinations']);
+    Route::get('/nearby', [DestinationController::class, 'nearby']);
+    Route::get('/trashed', [DestinationController::class, 'trashed'])->middleware('auth:api');
     Route::get('/', [DestinationController::class, 'index']);
     Route::get('/{destination}', [DestinationController::class, 'show']);
     Route::get('/{destination}/reviews', [DestinationController::class, 'getDestinationReviews']);
@@ -27,6 +31,10 @@ Route::prefix('destinations')->group(function () {
 Route::prefix('events')->group(function () {
     Route::get('/popular', [EventController::class, 'getPopularEvents']);
     Route::get('/upcoming', [EventController::class, 'getUpcomingEvents']);
+    Route::get('/nearby', [EventController::class, 'nearby']);
+    Route::get('/recommendations', [EventController::class, 'getEventRecommendations']);
+    Route::get('/calendar', [EventController::class, 'getEventCalendar']);
+    Route::get('/trashed', [EventController::class, 'trashed'])->middleware('auth:api');
     Route::get('/', [EventController::class, 'index']);
     Route::get('/{event}', [EventController::class, 'show']);
 });
@@ -39,19 +47,45 @@ Route::prefix('communities')->group(function () {
 
 Route::prefix('routes')->group(function () {
     Route::get('/popular', [RouteController::class, 'getPopularRoutes']);
+    Route::get('/trashed', [RouteController::class, 'trashed'])->middleware('auth:api');
     Route::get('/', [RouteController::class, 'index']);
     Route::get('/{route}', [RouteController::class, 'show']);
 });
 
+Route::prefix('reviews')->group(function () {
+    Route::get('/', [ReviewController::class, 'index']);
+});
+
+Route::prefix('tours')->group(function () {
+    Route::get('/', [TourController::class, 'index']);
+    Route::get('/trashed', [TourController::class, 'trashed'])->middleware('auth:api');
+    Route::get('/{tour}', [TourController::class, 'show']);
+});
+
 Route::prefix('categories')->group(function () {
+    Route::get('/popular', [CategoryController::class, 'getPopularCategories']);
+    Route::get('/trashed', [CategoryController::class, 'trashed'])->middleware('auth:api');
     Route::get('/', [CategoryController::class, 'index']);
     Route::get('/{category}', [CategoryController::class, 'show']);
     Route::get('/{category}/destinations', [CategoryController::class, 'destinations']);
 });
 
 Route::prefix('tags')->group(function () {
+    Route::get('/trashed', [TagController::class, 'trashed'])->middleware('auth:api');
     Route::get('/', [TagController::class, 'index']);
     Route::get('/{tag}', [TagController::class, 'show']);
+});
+
+Route::prefix('guide-profiles')->group(function () {
+    Route::get('/verified', [GuideProfileController::class, 'verified']);
+    Route::get('/', [GuideProfileController::class, 'index']);
+    Route::get('/{profile}', [GuideProfileController::class, 'show']);
+
+    Route::middleware('auth:api')->group(function () {
+        Route::post('/', [GuideProfileController::class, 'store']);
+        Route::put('/{profile}', [GuideProfileController::class, 'update']);
+        Route::delete('/{profile}', [GuideProfileController::class, 'destroy']);
+    });
 });
 
 
@@ -107,9 +141,6 @@ Route::middleware('auth:api')->group(function () {
 
     Route::prefix('destinations')->group(function () {
         Route::post('/', [DestinationController::class, 'store']);
-        Route::get('/trashed', [DestinationController::class, 'trashed']);
-        Route::get('/nearby', [DestinationController::class, 'nearby']);
-        Route::get('/events', [DestinationController::class, 'events']);
         Route::post('/{destination}/restore', [DestinationController::class, 'restore']);
         Route::get('/{destination}/statistics', [DestinationController::class, 'getDestinationStatistics']);
         Route::put('/{destination}', [DestinationController::class, 'update']);
@@ -119,9 +150,6 @@ Route::middleware('auth:api')->group(function () {
     Route::prefix('events')->group(function () {
         Route::post('/', [EventController::class, 'store']);
         Route::get('/trashed', [EventController::class, 'trashed']);
-        Route::get('/nearby', [EventController::class, 'nearby']);
-        Route::get('/recommendations', [EventController::class, 'getEventRecommendations']);
-        Route::get('/calendar', [EventController::class, 'getEventCalendar']);
         Route::post('/{event}/restore', [EventController::class, 'restore']);
         Route::post('/{event}/attend', [EventController::class, 'attend']);
         Route::post('/{event}/cancel-attendance', [EventController::class, 'cancelAttendance']);
@@ -146,7 +174,6 @@ Route::middleware('auth:api')->group(function () {
 
     Route::prefix('routes')->group(function () {
         Route::post('/', [RouteController::class, 'store']);
-        Route::get('/trashed', [RouteController::class, 'trashed']);
         Route::post('/{route}/restore', [RouteController::class, 'restore']);
         Route::post('/{route}/communities/attach', [RouteController::class, 'attachCommunity']);
         Route::post('/{route}/communities/detach', [RouteController::class, 'detachCommunity']);
@@ -159,8 +186,15 @@ Route::middleware('auth:api')->group(function () {
         Route::delete('/{route}', [RouteController::class, 'destroy']);
     });
 
+    Route::prefix('tour-schedules')->group(function () {
+        Route::post('/', [TourScheduleController::class, 'store']);
+        Route::get('/', [TourScheduleController::class, 'index']);
+        Route::get('/{schedule}', [TourScheduleController::class, 'show']);
+        Route::put('/{schedule}', [TourScheduleController::class, 'update']);
+        Route::delete('/{schedule}', [TourScheduleController::class, 'destroy']);
+    });
+
     Route::prefix('reviews')->group(function () {
-        Route::get('/', [ReviewController::class, 'index']);
         Route::post('/', [ReviewController::class, 'store']);
         Route::post('/{review}/restore', [ReviewController::class, 'restore']);
         Route::get('/{review}', [ReviewController::class, 'show']);
@@ -174,16 +208,15 @@ Route::middleware('auth:api')->group(function () {
         Route::get('/trashed', [ReservationController::class, 'trashed']);
         Route::post('/{reservation}/restore', [ReservationController::class, 'restore']);
         Route::get('/{reservation}', [ReservationController::class, 'show']);
-        Route::put('/{reservation}', [ReservationController::class, 'update']);
+        Route::post('/{reservation}/cancel', [ReservationController::class, 'cancel']);
+        Route::post('/{reservation}/confirm', [ReservationController::class, 'confirm']);
         Route::delete('/{reservation}', [ReservationController::class, 'destroy']);
     });
 
     Route::prefix('tours')->group(function () {
-        Route::get('/', [TourController::class, 'index']);
         Route::post('/', [TourController::class, 'store']);
         Route::get('/trashed', [TourController::class, 'trashed']);
         Route::post('/{tour}/restore', [TourController::class, 'restore']);
-        Route::get('/{tour}', [TourController::class, 'show']);
         Route::put('/{tour}', [TourController::class, 'update']);
         Route::delete('/{tour}', [TourController::class, 'destroy']);
     });
