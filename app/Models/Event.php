@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Event extends Model
 {
@@ -26,7 +27,17 @@ class Event extends Model
         'max_attendees',
         'user_id',
         'destination_id',
+        'category_id',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function ($event) {
+            if (empty($event->slug)) {
+                $event->slug = Str::slug($event->title);
+            }
+        });
+    }
 
     protected function casts(): array
     {
@@ -73,6 +84,11 @@ class Event extends Model
     public function reviews(): MorphMany
     {
         return $this->morphMany(Review::class, 'reviewable');
+    }
+
+    public function media(): MorphMany
+    {
+        return $this->morphMany(Media::class, 'model');
     }
 
     public function category(): BelongsTo

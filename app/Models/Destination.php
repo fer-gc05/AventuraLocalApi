@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Destination extends Model
 {
@@ -35,6 +36,15 @@ class Destination extends Model
         'is_featured',
         'is_approved',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function ($destination) {
+            if (empty($destination->slug)) {
+                $destination->slug = Str::slug($destination->name);
+            }
+        });
+    }
 
     protected function casts(): array
     {

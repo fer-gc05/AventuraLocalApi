@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Community extends Model
 {
@@ -20,6 +21,15 @@ class Community extends Model
         'user_id',
         'is_public',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function ($community) {
+            if (empty($community->slug)) {
+                $community->slug = Str::slug($community->name);
+            }
+        });
+    }
 
     protected function casts(): array
     {

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Tour extends Model
 {
@@ -37,6 +38,15 @@ class Tour extends Model
         'status',
         'is_active',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function ($tour) {
+            if (empty($tour->slug)) {
+                $tour->slug = Str::slug($tour->title);
+            }
+        });
+    }
 
     protected function casts(): array
     {
