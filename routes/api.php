@@ -41,6 +41,8 @@ Route::prefix('events')->group(function () {
 
 Route::prefix('communities')->group(function () {
     Route::get('/popular', [CommunityController::class, 'getPopularCommunities']);
+    Route::get('/trashed', [CommunityController::class, 'trashed'])->middleware('auth:api');
+    Route::get('/recommendations', [CommunityController::class, 'getCommunityRecommendations'])->middleware('auth:api');
     Route::get('/', [CommunityController::class, 'index']);
     Route::get('/{community}', [CommunityController::class, 'show']);
 });
@@ -161,8 +163,6 @@ Route::middleware('auth:api')->group(function () {
 
     Route::prefix('communities')->group(function () {
         Route::post('/', [CommunityController::class, 'store']);
-        Route::get('/trashed', [CommunityController::class, 'trashed']);
-        Route::get('/recommendations', [CommunityController::class, 'getCommunityRecommendations']);
         Route::post('/{id}/restore', [CommunityController::class, 'restore']);
         Route::post('/{community}/join', [CommunityController::class, 'join']);
         Route::post('/{community}/leave', [CommunityController::class, 'leave']);

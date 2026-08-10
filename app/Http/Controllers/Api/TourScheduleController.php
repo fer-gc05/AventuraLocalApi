@@ -123,9 +123,9 @@ class TourScheduleController extends Controller
     {
         try {
             $schedule = TourSchedule::findOrFail($id);
-            $guide = auth('api')->user();
+            $guideProfile = \App\Models\GuideProfile::where('user_id', auth('api')->id())->first();
 
-            if ($schedule->guide_id !== $guide->id) {
+            if (!$guideProfile || $schedule->guide_id !== $guideProfile->id) {
                 return response()->json([
                     'success' => false,
                     'message' => 'You can only update your own schedules',
@@ -172,9 +172,9 @@ class TourScheduleController extends Controller
     {
         try {
             $schedule = TourSchedule::findOrFail($id);
-            $guide = auth('api')->user();
+            $guideProfile = \App\Models\GuideProfile::where('user_id', auth('api')->id())->first();
 
-            if ($schedule->guide_id !== $guide->id) {
+            if (!$guideProfile || $schedule->guide_id !== $guideProfile->id) {
                 return response()->json([
                     'success' => false,
                     'message' => 'You can only delete your own schedules',

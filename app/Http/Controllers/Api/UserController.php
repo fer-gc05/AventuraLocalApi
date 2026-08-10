@@ -105,7 +105,7 @@ class UserController extends Controller
                 'success' => true,
                 'message' => 'User created successfully',
                 'data' => $user
-            ]);
+            ], 201);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([

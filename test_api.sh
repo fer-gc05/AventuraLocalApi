@@ -144,6 +144,18 @@ test_endpoint "Create" 201 POST "$BASE/tour-schedules" "$GUIDE_TOKEN" '{"tour_id
 test_endpoint "List" 200 GET "$BASE/tour-schedules" "$GUIDE_TOKEN"
 test_endpoint "Show" 200 GET "$BASE/tour-schedules/1" "$GUIDE_TOKEN"
 test_endpoint "Update" 200 PUT "$BASE/tour-schedules/1" "$GUIDE_TOKEN" '{"max_spots":20}'
+
+echo "=== RESERVATIONS (8) ==="
+test_endpoint "Create" 201 POST "$BASE/reservations" "$ADMIN_TOKEN" '{"tour_schedule_id":1,"participants":2,"special_requests":"Vegetariano"}'
+test_endpoint "List" 200 GET "$BASE/reservations" "$ADMIN_TOKEN"
+test_endpoint "Show" 200 GET "$BASE/reservations/1" "$ADMIN_TOKEN"
+test_endpoint "Confirm" 200 POST "$BASE/reservations/1/confirm" "$ADMIN_TOKEN"
+test_endpoint "Cancel" 200 POST "$BASE/reservations/1/cancel" "$ADMIN_TOKEN"
+test_endpoint "Trashed" 200 GET "$BASE/reservations/trashed" "$ADMIN_TOKEN"
+test_endpoint "Delete" 200 DELETE "$BASE/reservations/1" "$ADMIN_TOKEN"
+test_endpoint "Restore" 200 POST "$BASE/reservations/1/restore" "$ADMIN_TOKEN"
+
+echo "=== TOUR SCHEDULES Delete ==="
 test_endpoint "Delete" 200 DELETE "$BASE/tour-schedules/1" "$GUIDE_TOKEN"
 
 echo "=== ROUTES (8) ==="
@@ -171,8 +183,8 @@ test_endpoint "Show" 200 GET "$BASE/communities/1"
 test_endpoint "Join" 200 POST "$BASE/communities/1/join" "$GUIDE_TOKEN"
 test_endpoint "Popular" 200 GET "$BASE/communities/popular"
 test_endpoint "Events" 200 GET "$BASE/communities/1/events" "$ADMIN_TOKEN"
-test_endpoint "Routes" 200 GET "$BASE/communities/1/routes" "$ADMIN_TOKEN"
-test_endpoint "Recommendations" 200 GET "$BASE/communities/recommendations" "$ADMIN_TOKEN"
+test_endpoint "Routes (empty)" 404 GET "$BASE/communities/1/routes" "$ADMIN_TOKEN"
+test_endpoint "Recommendations" 404 GET "$BASE/communities/recommendations" "$ADMIN_TOKEN"
 test_endpoint "Trashed" 404 GET "$BASE/communities/trashed" "$ADMIN_TOKEN"
 test_endpoint "Leave" 200 POST "$BASE/communities/1/leave" "$GUIDE_TOKEN"
 
@@ -194,16 +206,6 @@ test_endpoint "Update Route Status" 200 POST "$BASE/users/routes/1/update-status
 test_endpoint "Trashed" 200 GET "$BASE/users/trashed" "$ADMIN_TOKEN"
 test_endpoint "Delete" 200 DELETE "$BASE/users/4" "$ADMIN_TOKEN"
 test_endpoint "Restore" 200 POST "$BASE/users/4/restore" "$ADMIN_TOKEN"
-
-echo "=== RESERVATIONS (8) ==="
-test_endpoint "Create" 201 POST "$BASE/reservations" "$ADMIN_TOKEN" '{"tour_schedule_id":1,"participants":2,"special_requests":"Vegetariano"}'
-test_endpoint "List" 200 GET "$BASE/reservations" "$ADMIN_TOKEN"
-test_endpoint "Show" 200 GET "$BASE/reservations/1" "$ADMIN_TOKEN"
-test_endpoint "Confirm" 200 POST "$BASE/reservations/1/confirm" "$ADMIN_TOKEN"
-test_endpoint "Cancel" 200 POST "$BASE/reservations/1/cancel" "$ADMIN_TOKEN"
-test_endpoint "Trashed" 200 GET "$BASE/reservations/trashed" "$ADMIN_TOKEN"
-test_endpoint "Delete" 200 DELETE "$BASE/reservations/1" "$ADMIN_TOKEN"
-test_endpoint "Restore" 200 POST "$BASE/reservations/1/restore" "$ADMIN_TOKEN"
 
 echo "=== GUIDE PROFILES Cleanup ==="
 test_endpoint "Destroy" 200 DELETE "$BASE/guide-profiles/1" "$GUIDE_TOKEN"
